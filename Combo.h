@@ -43,33 +43,39 @@ public:
 	bool testStrit;
 	int massiv[5][2];
 
-	Combo()
+	Combo(Card _plCards[5])
 	{
+		for(int i=0; i<5;i++)
+		{
+			plCards[i] = _plCards[i];
+		}
 		numCombo=11;
 		testFlush=true;
 		testStrit=false;
 		int tmp=0;
+
 		//	какие карты повтор€ютьс€
 		for(int i=0;i<5;i++)
 		{
 			massiv[i][0]=plCards[i].rang;
 			massiv[i][1]=1;
 		}
-		for(int i=0; i<5; i++)
+		for(int j=0; j<4; j++)
 		{
-			for(int j=5-i; j>i; j--)
+			for(int i=0; i<4-j; i++)
 			{
-				if(massiv[j-1][0] > massiv[j][0])
+				if(massiv[i][0] < massiv[i+1][0])
 				{
-					tmp=massiv[j-1][0];
-					massiv[j-1][0] = massiv[j][0];
-					massiv[j][0]=tmp; 
+					tmp = massiv[i][0];
+					massiv[i][0] = massiv[i+1][0];
+					massiv[i+1][0]=tmp; 
 				}
+
 			}
 		}
 		for(int i=4; i>0; i--)
 		{
-			if(massiv[i][0] = massiv[i-1][0])
+			if(massiv[i][0] == massiv[i-1][0])
 			{
 				massiv[i-1][1] += massiv[i][1];
 				massiv[i][1]=0;
@@ -77,14 +83,38 @@ public:
 		}
 		for(int i=0; i<5; i++)
 		{
-			for(int j=5-i; j>i; j--)
+			if(massiv[i][1]==0)
 			{
-				if(massiv[j-1][1] > massiv[j][1])
+				for(int j=i; j<4; j++)
 				{
-					tmp=massiv[j-1][1];
-					massiv[j-1][1] = massiv[j][1];
-					massiv[j][1] = tmp; 
+					tmp = massiv[j][1];
+					massiv[j][1] = massiv[j+1][1];
+					massiv[j+1][1] = tmp; 
+				
+					tmp = massiv[j][0];
+					massiv[j][0] = massiv[j+1][0];
+					massiv[j+1][0] = tmp; 
 				}
+				massiv[4][0]=0;
+				massiv[4][1]=0;
+			}
+		}
+
+		for(int j=0; j<4; j++)
+		{
+			for(int i=0; i<4-j; i++)
+			{
+				if(massiv[i][1] < massiv[i+1][1])
+				{
+					tmp = massiv[i][1];
+					massiv[i][1] = massiv[i+1][1];
+					massiv[i+1][1]=tmp; 
+										
+					tmp = massiv[i][0];
+					massiv[i][0] = massiv[i+1][0];
+					massiv[i+1][0]=tmp; 
+				}
+
 			}
 		}
 		//тест на флэш	
@@ -96,24 +126,26 @@ public:
 			}
 		}
 		//тест на стрит;
+		testStrit=true;
 		for(int i=0; i<4; i++)
 		{
-			if(massiv[i][0]!=massiv[i][0]-1)
+			if(massiv[i][0]!=massiv[i+1][0]+1)
 			{
 				testStrit=false;
 			}
 		}
 
-		Funk();
+		GetCombo();
+		PrintCombo();
 	}
 
 
-	void Funk()
+	void GetCombo()
 	{
 
 		if(testFlush==true && testStrit==true)
 		{
-			if(massiv[0][0]=14)
+			if(massiv[0][0]==14)
 			{
 				numCombo = 1;
 				nameCombo ="Royal Flush";
@@ -124,7 +156,7 @@ public:
 				return;
 			}
 		}
-		if(massiv[0][1]==3 && massiv[0][2]==2)
+		if(massiv[0][1]==3 && massiv[1][1]==2)
 		{
 			numCombo = 3;
 			nameCombo ="Full House";
@@ -155,7 +187,7 @@ public:
 			return;
 		}
 			
-		if(massiv[0][1]==2 && massiv[0][2]==2)
+		if(massiv[0][1]==2 && massiv[1][1]==2)
 		{
 			numCombo = 8;
 			nameCombo ="2 Pair";
@@ -224,4 +256,8 @@ public:
 		//}
 	}
 
+	void PrintCombo()
+	{
+		//cout << "str=" << nameCombo;
+	}
 };
