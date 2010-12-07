@@ -23,8 +23,30 @@ struct Card
 	{
 		rang = j;
 		suit = i;
+	}	
+	void PrintCard()
+	{
+		if(rang <11)
+		{
+			cout<< rang;
+		}else{
+			switch(rang)
+			{
+				case 11: cout<<"J";break;
+				case 12: cout<<"D";break;
+				case 13: cout<<"K";break;
+				case 14: cout<<"T";break;
+			}
+		}
+		cout<< '-';
+		switch(suit)
+		{
+			case 0: cout<<'v';break;
+			case 1: cout<<'b';break;
+			case 2: cout<<'t';break;
+			case 3: cout<<'p';break;
+		}
 	}
-	    
 };
 
 
@@ -42,7 +64,9 @@ public:
 	bool testFlush;
 	bool testStrit;
 	int massiv[5][2];
-
+	Combo()
+	{
+	}
 	Combo(Card _plCards[5])
 	{
 		for(int i=0; i<5;i++)
@@ -136,7 +160,6 @@ public:
 		}
 
 		GetCombo();
-		PrintCombo();
 	}
 
 
@@ -193,7 +216,7 @@ public:
 			nameCombo ="2 Pair";
 			return;
 		}
-		if(massiv[0][1]==3)
+		if(massiv[0][1]==2)
 		{
 			numCombo =9;
 			nameCombo ="Pair";
@@ -259,5 +282,10 @@ public:
 	void PrintCombo()
 	{
 		//cout << "str=" << nameCombo;
+		
+		for(int i=0;nameCombo[i]!=0;i++)
+		{
+			cout <<nameCombo[i];
+		}
 	}
 };
