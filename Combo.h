@@ -21,8 +21,8 @@ struct Card
 
 	Card(int i, int j)
 	{
-		rang = j;
 		suit = i;
+		rang = j;
 	}	
 	void PrintCard()
 	{
@@ -41,7 +41,7 @@ struct Card
 		cout<< '-';
 		switch(suit)
 		{
-			case 0: cout<<'v';break;
+			case 0: cout<<'c';break;
 			case 1: cout<<'b';break;
 			case 2: cout<<'t';break;
 			case 3: cout<<'p';break;
@@ -64,9 +64,107 @@ public:
 	bool testFlush;
 	bool testStrit;
 	int massiv[5][2];
+
 	Combo()
 	{
 	}
+
+	Combo ( vector<Card> cards ) {
+
+		for(int i=0; i<5;i++)
+		{
+			plCards[i] = cards[i];
+		}
+
+		numCombo=11;
+		testFlush=true;
+		testStrit=false;
+		int tmp=0;
+
+		//	какие карты повтор€ютьс€
+		for(int i=0;i<5;i++)
+		{
+			massiv[i][0]=plCards[i].rang;
+			massiv[i][1]=1;
+		}
+		for(int j=0; j<4; j++)
+		{
+			for(int i=0; i<4-j; i++)
+			{
+				if(massiv[i][0] < massiv[i+1][0])
+				{
+					tmp = massiv[i][0];
+					massiv[i][0] = massiv[i+1][0];
+					massiv[i+1][0]=tmp; 
+				}
+
+			}
+		}
+		for(int i=4; i>0; i--)
+		{
+			if(massiv[i][0] == massiv[i-1][0])
+			{
+				massiv[i-1][1] += massiv[i][1];
+				massiv[i][1]=0;
+			}
+		}
+		for(int i=0; i<5; i++)
+		{
+			if(massiv[i][1]==0)
+			{
+				for(int j=i; j<4; j++)
+				{
+					tmp = massiv[j][1];
+					massiv[j][1] = massiv[j+1][1];
+					massiv[j+1][1] = tmp; 
+				
+					tmp = massiv[j][0];
+					massiv[j][0] = massiv[j+1][0];
+					massiv[j+1][0] = tmp; 
+				}
+				massiv[4][0]=0;
+				massiv[4][1]=0;
+			}
+		}
+
+		for(int j=0; j<4; j++)
+		{
+			for(int i=0; i<4-j; i++)
+			{
+				if(massiv[i][1] < massiv[i+1][1])
+				{
+					tmp = massiv[i][1];
+					massiv[i][1] = massiv[i+1][1];
+					massiv[i+1][1]=tmp; 
+										
+					tmp = massiv[i][0];
+					massiv[i][0] = massiv[i+1][0];
+					massiv[i+1][0]=tmp; 
+				}
+
+			}
+		}
+		//тест на флэш	
+		for(int i=0; i<4; i++)
+		{
+			if(plCards[i].suit != plCards[i+1].suit)
+			{
+				testFlush=false;
+			}
+		}
+		//тест на стрит;
+		testStrit=true;
+		for(int i=0; i<4; i++)
+		{
+			if(massiv[i][0]!=massiv[i+1][0]+1)
+			{
+				testStrit=false;
+			}
+		}
+
+		GetCombo();
+	}
+
 	Combo(Card _plCards[5])
 	{
 		for(int i=0; i<5;i++)
@@ -229,30 +327,32 @@ public:
 			return;
 		}
 	}
+
 	//если с1 больше то 0, если равны то 1, если меньше то 2
 	int sravnenie(Combo c1, Combo c2)
-{
-	if(c1.numCombo > c2.numCombo)
 	{
-		return 0;
-	}
-	if(c1.numCombo < c2.numCombo)
-	{
-		return 2;
-	}
-	for(int i=0; i<5; i++)
-	{
-		if(c1.massiv[1][i]>c2.massiv[1][i])
+		if(c1.numCombo > c2.numCombo)
 		{
 			return 0;
-		}	
-		if(c1.massiv[1][i]<c2.massiv[1][i])
+		}
+		if(c1.numCombo < c2.numCombo)
 		{
 			return 2;
 		}
+		for(int i=0; i<5; i++)
+		{
+			if(c1.massiv[1][i]>c2.massiv[1][i])
+			{
+				return 0;
+			}	
+			if(c1.massiv[1][i]<c2.massiv[1][i])
+			{
+				return 2;
+			}
+		}
+		return 1;
 	}
-	return 1;
-}
+
 	//возращ€ет удачные индексы
 	vector<int> getIndex()
 	{

@@ -3,31 +3,25 @@
 #include <string>
 #include <vector>
 #include <stdlib.h>
+#include <time.h>
+#include <dos.h>
+#include "Combo.h"
 
 using namespace std;
 
-struct Card
-{
-	int rang;
-	int suit;
-
-	Card(int i, int j)
-	{
-		rang = j;
-		suit = i;
-	}
-	    
-};
-
 class AIPlayer {
-private:
+public:
 
-	double bluff;	// ���������� �����
-	double risk;	// ���������� ����, ��� ������� 
+	double bluff;	// вероятнось блефа
+	double risk;	// вероятность риска 
 
-	bool is_fold;	// �������� ��� ���
-	bool is_shared;	// ��� ������� ����� ��� ���
+	bool is_fold;	// сфолил
+	bool is_shared;	// обменял
+
 	int money;
+	int bet;
+	int bet_sum;
+	int min_bet;
 
 	vector <Card> cards;
 
@@ -35,25 +29,42 @@ public:
 	
 	AIPlayer() {
 
-		bluff = rand();
-		risk = rand();
+		time_t t;
+		struct tm *t_m;
+		t=time(NULL);
+		t_m=localtime(&t);
 
-		is_fold = false;
+		srand ( (int) time ( NULL ) );
+
+		srand ( t_m->tm_hour * t_m->tm_sec * t_m->tm_min * t_m->tm_mday * rand() );
+		bluff = ( ( (double)rand() / (double)32767 ) + ( (double)rand() / (double)32767 ) ) / 2;
+		risk = ( ( (double)rand() / (double)32767 ) + ( (double)rand() / (double)32767 ) ) / 2;
+
 		money = 10000;
+		min_bet = 10;
+
+		reset();
 	}
 
 	~AIPlayer() {
 	}
 
-	// �������� �������
-	void setCards ( vector<Card> _cards ) {
+	// восстановить начальные параметры
+	void reset() {
 		
 		is_shared = false;
+		is_fold = false;
+		bet = 0;
+		bet_sum = 0;
+	}
+
+	// получить карты при раздаче
+	void setCards ( vector<Card> _cards ) {
 
 		cards = _cards;
 	}
 
-	// �������� ���������� �����
+	// получить обменяные карты
 	void addCards ( vector<Card> exchanged_cards ) {
 		
 		is_shared = true;
@@ -64,7 +75,7 @@ public:
 		}
 	}
 
-	// ������ ���������� ����, ������� ����� ��������
+	// карты для обмена
 	int CardsToShare() {
 
 		cardSort();
@@ -78,7 +89,7 @@ public:
 
 		if ( same_suit.size() < 3 && cards_sequence.size() < 3 ) {
 			
-			if ( rand() + risk > 0.8 ) {	// �������-������ ��� �����
+			if ( ( (double)rand() / (double)32767 ) + risk > 0.8 ) {	// �������-������ ��� �����
 				
 				int arr[] = { 0,1,2,3,4 };
 				deleteCards ( arr, 5 );
@@ -143,7 +154,208 @@ public:
 
 	} 
 
-	// ������ ����� ���������� �����
+	// поставить ставку первым| stage - этап ставок
+	int setBet ( int stage ) {
+
+		if ( money == 0 ) {	// пас
+			is_fold = true;
+			return -1;	
+		}
+
+		if ( stage == 1 ) {
+
+			if ( ( (double)rand() / (double)32767 ) * bluff > 0.6 ) {
+
+				bet = 2 * min_bet + ( (double)rand() / (double)32767 ) * 5 * min_bet;
+				if ( bet < money ) {
+
+					money -= bet;
+					bet_sum += bet;
+					return bet;
+
+				} else {
+
+					bet = money;
+					money = 0;
+					bet_sum += bet;
+					return bet;
+				}
+			} else {
+				bet = min_bet;
+				if ( bet < money ) {
+
+					money -= bet;
+					bet_sum += bet;
+					return bet;
+
+				} else {
+
+					bet = money;
+					money = 0;
+					bet_sum += bet;
+					return bet;
+				}
+			}
+		}
+
+		Combo* tmp = new Combo ( cards );
+
+		if ( stage == 2 ) {		// ставка после раздачи
+			
+			if ( tmp->numCombo == 10 ) { 
+
+				// пасуем
+				if ( bluff * ( (double)rand() / (double)32767 ) < 0.04 ) {
+					is_fold = true;
+					return -1;	
+				}
+
+				bet = min_bet;
+				if ( bluff * ( (double)rand() / (double)32767 ) > 0.52 ) {
+					bet += ( (double)rand() / (double)32767 ) * min_bet * 5 ;
+				}
+
+				if ( bet < money ) {
+
+					money -= bet;
+
+				} else {
+
+					bet = money;
+					money = 0;
+				}
+
+				bet_sum += bet;
+
+				return bet;
+
+			} else {
+				
+				bet = min_bet + ( (double)rand() / (double)32767 ) * ( 1 + 10 - tmp->numCombo ) * min_bet;
+				if ( bet < money ) {
+
+					money -= bet;
+
+				} else {
+
+					bet = money;
+					money = 0;
+				}
+				bet_sum += bet;
+				return bet;
+			} 
+		} else if ( stage == 3 ) {		// ставка после обмена
+
+			if ( tmp->numCombo == 10 ) {
+				// пасуем
+				if ( bluff * ( (double)rand() / (double)32767 ) < 0.08 ) {
+					is_fold = true;
+					return -1;	
+				}
+			}
+			
+			if ( tmp->numCombo >= 9 ) { 
+
+				bet = min_bet * 2;
+				if ( bluff * ( (double)rand() / (double)32767 ) > 0.5 ) {
+					bet += ( (double)rand() / (double)32767 ) * min_bet * 10 ;
+				}
+
+				if ( bet < money ) {
+
+					money -= bet;
+
+				} else {
+
+					bet = money;
+					money = 0;
+				}
+
+				bet_sum += bet;
+
+				return bet;
+
+			} else {
+				
+				bet = min_bet + ( (double)rand() / (double)32767 ) * ( 1 + 10 - tmp->numCombo ) * min_bet;
+				if ( bet < money ) {
+
+					money -= bet;
+
+				} else {
+
+					bet = money;
+					money = 0;
+				}
+				bet_sum += bet;
+				return bet;
+			}
+		}
+		
+	}
+
+	// принять/повысить/сбросить
+	int AcceptFoldIncrease ( int stage, int new_bet ) {
+		
+		int bet_value = setBet ( stage );
+
+		if ( bet_value == -1 ) {
+			return -1;
+		}
+
+		if ( bet_value >= new_bet ) {
+
+			return bet_value;
+
+		} else if ( stage != 1 ) {
+			
+			if ( risk * ( bet_value / new_bet ) > 0.4 ) {
+				
+				int difference = new_bet - bet_value;
+				if ( difference <= money ) {
+
+					money -= difference;
+					bet += difference;
+					bet_sum += difference;
+					return bet;
+
+				} else {
+
+					money += bet;
+					is_fold = true;
+					return -1;
+				}
+
+			} else {
+				is_fold = true;
+				return -1;
+			}
+		} else {
+
+			if ( risk * ( (double)rand() / (double)32767 ) > 0.20 ) {
+
+				if ( new_bet - bet_value < money ) {
+
+					money -= new_bet - bet_value;
+					bet = new_bet;
+					bet_sum += new_bet - bet_value;
+					return bet;
+
+				} else {
+
+					money += bet;
+					is_fold = true;
+					return -1;
+				}
+			} else {
+				money += bet;
+				is_fold = true;
+				return -1;
+			}
+		}
+	}
+
+	// наибольшая послед. карт одной масти
 	vector<int> getSameSuit() {
 		
 		int suit;
@@ -181,7 +393,7 @@ public:
 		return info;
 	}
 
-	// ������ ����� ����� �� �������
+	// наибольшая последовательность
 	vector<int> getCardSequence() {
 
 		vector<int> best;
@@ -210,7 +422,7 @@ public:
 		return best;
 	}
 
-	// ���������� �� ������ �����
+	// сортировка карт
 	void cardSort() {
 
 		int last_index = cards.size();
@@ -230,7 +442,7 @@ public:
 		}
 	}
 
-	// ������ ������� ��� ����, ������� �� ���������� � �������
+	// выдать карты из розданных, кроме mass
 	int* getOther ( vector<int> mass ) {
 
 		int* result = new int[5 - mass.size()];
@@ -238,25 +450,26 @@ public:
 
 		for ( int i = 0; i < cards.size(); i++ ) {
 
-			for ( int j = 0; j < mass.size(); i++ ) {
+			int sum = mass.size();
+			for ( int j = 0; j < mass.size(); j++ ) {
 				
-				if ( mass[j] == i ) { 
-					break;
-				} else if ( j + 1 == mass.size() ) {
-					
-					result[index] = i;
-					index++;
+				if ( mass[j] != i ) { 
+					sum--;
 				}
+			}
+			if ( sum == 0 ) {
+				result[index] = i;
+				index++;
 			}
 		}
 
 		return result;
 	}
 
-	// �������� �������
+	// поменять карты местами
 	void swapCards ( int ind_1, int ind_2 ) {
 		
-		Card* tmp = new Card ( cards[ind_1].rang, cards[ind_1].suit );
+		Card* tmp = new Card ( cards[ind_1].suit, cards[ind_1].rang );
 
 		cards[ind_1] = cards[ind_2];
 
@@ -264,7 +477,7 @@ public:
 		cards[ind_2].suit = tmp->suit;
 	}
 
-	// ������� ����� �� �������
+	// удалить карту
 	void deleteCard ( int index ) {
 
 		vector<Card> tmp_cards;
@@ -280,7 +493,7 @@ public:
 		cards = tmp_cards;
 	}
 
-	// ������� �����
+	// удалить карты
 	void deleteCards ( int* cards, int count ) {
 		
 		for ( int i = count - 1; i >= 0; i-- ) {
