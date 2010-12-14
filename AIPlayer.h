@@ -89,14 +89,14 @@ public:
 
 		if ( same_suit.size() < 3 && cards_sequence.size() < 3 ) {
 			
-			if ( ( (double)rand() / (double)32767 ) + risk > 0.8 ) {	// �������-������ ��� �����
+			if ( ( (double)rand() / (double)32767 ) + risk > 0.8 ) {	
 				
 				int arr[] = { 0,1,2,3,4 };
 				deleteCards ( arr, 5 );
 				return 5;
 			}
 
-			if ( cards[3].rang >= 10 ) {	// ��� ��������� ����� ������ ���� ����� ������
+			if ( cards[3].rang >= 10 ) {	
 				
 				int arr[] = { 0,1,2 };
 				deleteCards ( arr, 3 );
