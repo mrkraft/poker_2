@@ -1,10 +1,9 @@
-﻿#pragma once
+#pragma once
 #include <iostream>
 #include <string>
 #include <vector>
 #include <stdlib.h>
 #include <time.h>
-#include <dos.h>
 #include "Combo.h"
 
 using namespace std;
@@ -198,11 +197,11 @@ public:
 			}
 		}
 
-		Combo* tmp = new Combo ( cards );
+		Combo tmp( cards );
 
 		if ( stage == 2 ) {		// ставка после раздачи
 			
-			if ( tmp->numCombo == 10 ) { 
+			if ( tmp.numCombo == 10 ) { 
 
 				// пасуем
 				if ( bluff * ( (double)rand() / (double)32767 ) < 0.04 ) {
@@ -231,7 +230,7 @@ public:
 
 			} else {
 				
-				bet = min_bet + ( (double)rand() / (double)32767 ) * ( 1 + 10 - tmp->numCombo ) * min_bet;
+				bet = min_bet + ( (double)rand() / (double)32767 ) * ( 1 + 10 - tmp.numCombo ) * min_bet;
 				if ( bet < money ) {
 
 					money -= bet;
@@ -246,7 +245,7 @@ public:
 			} 
 		} else if ( stage == 3 ) {		// ставка после обмена
 
-			if ( tmp->numCombo == 10 ) {
+			if ( tmp.numCombo == 10 ) {
 				// пасуем
 				if ( bluff * ( (double)rand() / (double)32767 ) < 0.08 ) {
 					is_fold = true;
@@ -254,7 +253,7 @@ public:
 				}
 			}
 			
-			if ( tmp->numCombo >= 9 ) { 
+			if ( tmp.numCombo >= 9 ) { 
 
 				bet = min_bet * 2;
 				if ( bluff * ( (double)rand() / (double)32767 ) > 0.5 ) {
@@ -277,7 +276,7 @@ public:
 
 			} else {
 				
-				bet = min_bet + ( (double)rand() / (double)32767 ) * ( 1 + 10 - tmp->numCombo ) * min_bet;
+				bet = min_bet + ( (double)rand() / (double)32767 ) * ( 1 + 10 - tmp.numCombo ) * min_bet;
 				if ( bet < money ) {
 
 					money -= bet;
@@ -469,12 +468,13 @@ public:
 	// поменять карты местами
 	void swapCards ( int ind_1, int ind_2 ) {
 		
-		Card* tmp = new Card ( cards[ind_1].suit, cards[ind_1].rang );
+		Card tmp( cards[ind_1].suit, cards[ind_1].rang );
 
 		cards[ind_1] = cards[ind_2];
 
-		cards[ind_2].rang = tmp->rang;
-		cards[ind_2].suit = tmp->suit;
+		cards[ind_2].rang = tmp.rang;
+		cards[ind_2].suit = tmp.suit;
+
 	}
 
 	// удалить карту
@@ -503,3 +503,4 @@ public:
 	}
 	
 };
+

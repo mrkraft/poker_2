@@ -1,12 +1,8 @@
-#pragma once
-#include <assert.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <conio.h>
-#include <iostream>
-#include <vector>
-#include "Combo.h"
+#include </media/win_c2/PROGGA/GIT/porer_linux/cppunit/TestRunner.h>
 #include "AIPlayer.h"
+#include "Test.h"
+
+CPPUNIT_TEST_SUITE_REGISTRATION(Test);
 
 using namespace std;
 
@@ -78,7 +74,8 @@ class Deck
 	}
 };
 
-struct game {
+class game {
+public:
 
 	int ai_num;
 	int min_bet;
@@ -105,6 +102,9 @@ struct game {
 		round = 0;
 		bet = 0;
 		bet_sum = 0;
+	}
+
+	~game(){
 	}
 
 	void nextTurn() {
@@ -238,7 +238,7 @@ struct game {
 		}
 	}
 
-	// найти одного оставшегося ai - он выиграл
+	// пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ ai - пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 	void findOneWinner() {
 
 		for ( int i = 0; i < ai_num; i++ ) {
@@ -370,196 +370,177 @@ struct game {
 
 };
 
-int main()
-{
+int StrToNum ( char* str ) {
 
-	game* the_game = new game();
-	int data;
-	// Input first data
-	cout<<"Enter the game options:"<<endl;
-	cout<<"-> ai players count:"<<endl;
-	cin>>data;
-	if ( data > 0 && data <= 5 ) {
-		the_game->ai_num = data;
-	} else {
-		the_game->ai_num = 3;
-	}
-	cout<<"-> start money:"<<endl;
-	cin>>data;
-	if ( data >= 100 ) {
-		the_game->money = data;
-		the_game->my_money = data;
-	} else {
-		the_game->money = 100;
-		the_game->my_money = 100;
-	}
-	cout<<"-> min bet:"<<endl;
-	cin>>data;
-	if ( data > 0 && data < the_game->money / 3 ) {
-		the_game->min_bet = data;
-	} else {
-		the_game->min_bet = 10;
-	}
-	the_game->createAIPlayers();
-
-	//Deck mD;
-	//int stavka = 0;
-	//int money=100;
-
-	//Card cards[5];
-	Combo comb;
-	bool StopGame=false;
-	bool flag1;
-	bool flagPass;
-	char x;
-
-	bool i_play = true;		// продолжаю ли я игру
-	bool stage_1 = true;
-	bool stage_2 = true;
-	bool stage_3 = true;
-	while(!StopGame)
-	{
-
-		//new game?
-		flag1=true;	
-		while(flag1)
-		{
-			cout<<"-> (q)uit,(n)ew game"<<endl;
-			cin>>x;		
-			switch(x)
-			{
-				case 'q': StopGame=true; flag1=false; break;
-				case 'n': cout<<endl; flag1=false; break;
-			}
+	int res_num = 0;
+	for ( int i = 0 ; str[i] != 0; i++ ) {
+		
+		if ( i != 0 ) {
+			res_num *= 10;
 		}
-		if(StopGame==false)
-		{	
+
+		switch ( str[i] ) {
+			case '1' : res_num += 1; break;
+			case '2' : res_num += 2; break;
+			case '3' : res_num += 3; break;
+			case '4' : res_num += 4; break;
+			case '5' : res_num += 5; break;
+			case '6' : res_num += 6; break;
+			case '7' : res_num += 7; break;
+			case '8' : res_num += 8; break;
+			case '9' : res_num += 9; break;
+		}
+
+	}
+
+	return res_num;
+}
+
+int main ( int argc, char* argv[] ) 
+{
+  
+	CppUnit::TextUi::TestRunner runner;
+   	CppUnit::TestFactoryRegistry &registry = CppUnit::TestFactoryRegistry::getRegistry();
+  	runner.addTest( registry.makeTest() );
+   	runner.run();
+
+	if ( argv[1][0] == '1' ) {	// lets TEST
+
+		game the_game;
+		the_game.shaflDeck();
+		
+		Card plCards[5];
+		vector<Card> cards;
+		for ( int i = 0; i < 5; i++ ) {
+
+			plCards[i] = the_game.deck.takeCard();
+			cards.push_back ( the_game.deck.takeCard() );
+		}
+
+		Combo combo ( plCards );
+		combo.GetCombo();
+		combo.PrintCombo();
+		combo.sravnenie ( combo, combo );
+
+		AIPlayer player;
+		player.setCards ( cards );
+		player.AcceptFoldIncrease ( 2, 200 );
+		player.cardSort();
+		player.getCardSequence();
+		player.getSameSuit();
+		player.CardsToShare();
+		
+		cout<<"\r\n";
 
 
-			i_play = true;
-			stage_1 = true;
-			stage_2 = true;
-			stage_3 = true;
-			the_game->nextTurn();
-			cout<<"ROUND #"<< the_game->round <<endl;
+	} else {					// lets PLAY
+		
+		game the_game;
 
-			// PERED RAZDACHEY
-			cout<<"####### BEFOR PLAY" << endl;
-			cout<< "your money:" << the_game->my_money <<endl;
-			flag1=true;
-			while(flag1)
-			{	
-				cout<< "-> enter a bet"<<endl;
-				cin>> data;
-				if ( data >= the_game->min_bet && data < the_game->my_money ) {
-					the_game->bet = data;
-					the_game->setBets(1);
-					the_game->my_money -= data;
-					the_game->bet_sum += data;
-				} else {
-					data = 10;
-					the_game->bet = data;
-					the_game->setBets(1);
-					the_game->my_money -= data;
-					the_game->bet_sum += data;
-				}
+		//ai players count
+		if ( argc > 2 ) {
 
-				if ( the_game->getActivePlayersCount() == 0 ) {
-					stage_1 = false;
-					cout<<"You WIN :" << data << endl;
-					the_game->my_money += data;
-					break;
-				}
+			the_game.ai_num = StrToNum ( argv[2] );
 
-				// esli stavku povisil comp
-				if ( the_game->bet > data )  {
-					cout<< "bet is chenged:"<< the_game->bet <<endl;
-					cout<< "-> are you raise the bet? ( (y)es, (n)o )"<<endl;
-					cin>> x;
+		} else {
 
-					if ( x != 'y' ) {
+			the_game.ai_num = 3;
+		}
 
-						i_play = false;
+		//start money
+		if ( argc > 3 ) {
 
-					} else {
+			int num = StrToNum ( argv[3] );
+			the_game.money = num;
+			the_game.my_money = num;
 
-						the_game->my_money -= the_game->bet - data;
-						the_game->bet_sum += the_game->bet - data;
-					}
-				}
+		} else {
 
-				flag1 = false;
-			}
+			the_game.money = 1000;
+			the_game.my_money = 1000;
+		}
+
+		//min bet
+		if ( argc > 4 ) {
 			
-			// RAZDACHA KART
-			if ( stage_1 ) {
+			the_game.min_bet = StrToNum ( argv[4] );
 
-				cout<<"####### TAKE CARDS" << endl;
+		} else {
 
-				the_game->shaflDeck();
-				the_game->setCards();
-				if ( i_play ) {
-					the_game->printMyCards();
+			the_game.min_bet = 10;
+		}
+		the_game.createAIPlayers();
 
-					cout<< "my money:" << the_game->my_money << " bank:" << the_game->bet_sum<<endl;
+	
+		Combo comb;
+		bool StopGame=false;
+		bool flag1;
+		bool flagPass;
+		char x;
+
+		bool i_play = true;		// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅ пїЅпїЅпїЅпїЅ
+		bool stage_1 = true;
+		bool stage_2 = true;
+		bool stage_3 = true;
+		int data;
+
+		while(!StopGame)
+		{
+
+			//new game?
+			flag1=true;	
+			while(flag1)
+			{
+				cout<<"-> (q)uit,(n)ew game"<<endl;
+				cin>>x;		
+				switch(x)
+				{
+					case 'q': StopGame=true; flag1=false; break;
+					case 'n': cout<<endl; flag1=false; break;
 				}
+			}
+			if(StopGame==false)
+			{	
 
-				//pass, stavka ,next
+
+				i_play = true;
+				stage_1 = true;
+				stage_2 = true;
+				stage_3 = true;
+				the_game.nextTurn();
+				cout<<"ROUND #"<< the_game.round <<endl;
+
+				// PERED RAZDACHEY
+				cout<<"####### BEFOR PLAY" << endl;
+				cout<< "your money:" << the_game.my_money <<endl;
 				flag1=true;
 				while(flag1)
 				{	
-					if ( i_play ) {
-						cout<< "-> enter a bet ( 0 - pass )"<<endl;
-						cin>> data;
-					} else {
-						data = 0;
-					}
-
-					if ( data <= 0 || the_game->my_money < 10 ) {
-						i_play = false;
-						the_game->bet = 0;
-						the_game->setBets(2);
-						the_game->bet_sum += data;
-
-					} if ( data >= the_game->min_bet && data < the_game->my_money ) {
-
-						the_game->bet = data;
-						the_game->setBets(2);
-						the_game->my_money -= data;
-						the_game->bet_sum += data;
+					cout<< "-> enter a bet"<<endl;
+					cin>> data;
+					if ( data >= the_game.min_bet && data < the_game.my_money ) {
+						the_game.bet = data;
+						the_game.setBets(1);
+						the_game.my_money -= data;
+						the_game.bet_sum += data;
 					} else {
 						data = 10;
-						the_game->bet = data;
-						the_game->setBets(2);
-						the_game->my_money -= data;
-						the_game->bet_sum += data;
+						the_game.bet = data;
+						the_game.setBets(1);
+						the_game.my_money -= data;
+						the_game.bet_sum += data;
 					}
 
-					if ( the_game->getActivePlayersCount() == 0 ) {
-
-						stage_2 = false;
-
-						if ( i_play ) {
-							cout<<"You WIN :" << the_game->bet_sum << endl;
-							the_game->my_money += the_game->bet_sum;
-						} else {
-							cout<<"There's n winners in this round !!!" << endl;
-						}
-						break;
-					}
-
-					if ( !i_play ) {
-
-						if ( the_game->getActivePlayersCount() == 1 ) {
-							the_game->findOneWinner();
-							stage_2 = false;
-						}
+					if ( the_game.getActivePlayersCount() == 0 ) {
+						stage_1 = false;
+						cout<<"You WIN :" << data << endl;
+						the_game.my_money += data;
 						break;
 					}
 
 					// esli stavku povisil comp
-					if ( the_game->bet > data )  {
-						cout<< "bet is chenged:"<< the_game->bet <<endl;
+					if ( the_game.bet > data )  {
+						cout<< "bet is chenged:"<< the_game.bet <<endl;
 						cout<< "-> are you raise the bet? ( (y)es, (n)o )"<<endl;
 						cin>> x;
 
@@ -569,36 +550,29 @@ int main()
 
 						} else {
 
-							the_game->my_money -= the_game->bet - data;
-							the_game->bet_sum += the_game->bet - data;
+							the_game.my_money -= the_game.bet - data;
+							the_game.bet_sum += the_game.bet - data;
 						}
 					}
 
 					flag1 = false;
 				}
 				
-				// OBMEN KART
-				if ( stage_2 ) {
+				// RAZDACHA KART
+				if ( stage_1 ) {
 
-					cout<<"####### CHANGE CARDS" << endl;
+					cout<<"####### TAKE CARDS" << endl;
 
-					the_game->changeCards();
+					the_game.shaflDeck();
+					the_game.setCards();
 					if ( i_play ) {
-						the_game->printMyCards();
+						the_game.printMyCards();
 
-						cout<< "-> enter numbers of cards for exchange:"<<endl;
-						cin>> data;
-						if ( data < 55555 && data >= 1 ) {
-							the_game->changeMyCards ( data );
-						}
-
-						the_game->printMyCards();
-
-						cout<< "my money:" << the_game->my_money << " bank:" << the_game->bet_sum<<endl;
+						cout<< "my money:" << the_game.my_money << " bank:" << the_game.bet_sum<<endl;
 					}
 
-					//pass, stavka ,END
-					flag1=true;	
+					//pass, stavka ,next
+					flag1=true;
 					while(flag1)
 					{	
 						if ( i_play ) {
@@ -608,33 +582,33 @@ int main()
 							data = 0;
 						}
 
-						if ( data <= 0 || the_game->my_money < 10 ) {
+						if ( data <= 0 || the_game.my_money < 10 ) {
 							i_play = false;
-							the_game->bet = 0;
-							the_game->setBets(3);
-							the_game->bet_sum += data;
+							the_game.bet = 0;
+							the_game.setBets(2);
+							the_game.bet_sum += data;
 
-						} if ( data >= the_game->min_bet && data < the_game->my_money ) {
+						} if ( data >= the_game.min_bet && data < the_game.my_money ) {
 
-							the_game->bet = data;
-							the_game->setBets(3);
-							the_game->my_money -= data;
-							the_game->bet_sum += data;
+							the_game.bet = data;
+							the_game.setBets(2);
+							the_game.my_money -= data;
+							the_game.bet_sum += data;
 						} else {
 							data = 10;
-							the_game->bet = data;
-							the_game->setBets(3);
-							the_game->my_money -= data;
-							the_game->bet_sum += data;
+							the_game.bet = data;
+							the_game.setBets(2);
+							the_game.my_money -= data;
+							the_game.bet_sum += data;
 						}
 
-						if ( the_game->getActivePlayersCount() == 0 ) {
+						if ( the_game.getActivePlayersCount() == 0 ) {
 
-							stage_3 = false;
+							stage_2 = false;
 
 							if ( i_play ) {
-								cout<<"You WIN :" << the_game->bet_sum << endl;
-								the_game->my_money += the_game->bet_sum;
+								cout<<"You WIN :" << the_game.bet_sum << endl;
+								the_game.my_money += the_game.bet_sum;
 							} else {
 								cout<<"There's n winners in this round !!!" << endl;
 							}
@@ -643,17 +617,16 @@ int main()
 
 						if ( !i_play ) {
 
-							if ( the_game->getActivePlayersCount() == 1 ) {
-								the_game->findOneWinner();
-								stage_3 = false;
+							if ( the_game.getActivePlayersCount() == 1 ) {
+								the_game.findOneWinner();
+								stage_2 = false;
 							}
-
 							break;
 						}
 
 						// esli stavku povisil comp
-						if ( the_game->bet > data )  {
-							cout<< "bet is chenged:"<< the_game->bet <<endl;
+						if ( the_game.bet > data )  {
+							cout<< "bet is chenged:"<< the_game.bet <<endl;
 							cout<< "-> are you raise the bet? ( (y)es, (n)o )"<<endl;
 							cin>> x;
 
@@ -663,33 +636,131 @@ int main()
 
 							} else {
 
-								the_game->my_money -= the_game->bet - data;
-								the_game->bet_sum += the_game->bet - data;
+								the_game.my_money -= the_game.bet - data;
+								the_game.bet_sum += the_game.bet - data;
 							}
 						}
 
 						flag1 = false;
 					}
+					
+					// OBMEN KART
+					if ( stage_2 ) {
 
-					if ( stage_3 ) {
+						cout<<"####### CHANGE CARDS" << endl;
 
-						cout<<"####### FIND WINNERS" << endl;
-						
+						the_game.changeCards();
 						if ( i_play ) {
-							the_game->printMyCards();
-							the_game->printAICards();
-							the_game->checkCombinationsWithMe();
-						} else {
-							the_game->printAICards();
-							the_game->checkCombinations();
+							the_game.printMyCards();
+
+							cout<< "-> enter numbers of cards for exchange:"<<endl;
+							cin>> data;
+							if ( data < 55555 && data >= 1 ) {
+								the_game.changeMyCards ( data );
+							}
+
+							the_game.printMyCards();
+
+							cout<< "my money:" << the_game.my_money << " bank:" << the_game.bet_sum<<endl;
 						}
+
+						//pass, stavka ,END
+						flag1=true;	
+						while(flag1)
+						{	
+							if ( i_play ) {
+								cout<< "-> enter a bet ( 0 - pass )"<<endl;
+								cin>> data;
+							} else {
+								data = 0;
+							}
+
+							if ( data <= 0 || the_game.my_money < 10 ) {
+								i_play = false;
+								the_game.bet = 0;
+								the_game.setBets(3);
+								the_game.bet_sum += data;
+
+							} if ( data >= the_game.min_bet && data < the_game.my_money ) {
+
+								the_game.bet = data;
+								the_game.setBets(3);
+								the_game.my_money -= data;
+								the_game.bet_sum += data;
+							} else {
+								data = 10;
+								the_game.bet = data;
+								the_game.setBets(3);
+								the_game.my_money -= data;
+								the_game.bet_sum += data;
+							}
+
+							if ( the_game.getActivePlayersCount() == 0 ) {
+
+								stage_3 = false;
+
+								if ( i_play ) {
+									cout<<"You WIN :" << the_game.bet_sum << endl;
+									the_game.my_money += the_game.bet_sum;
+								} else {
+									cout<<"There's n winners in this round !!!" << endl;
+								}
+								break;
+							}
+
+							if ( !i_play ) {
+
+								if ( the_game.getActivePlayersCount() == 1 ) {
+									the_game.findOneWinner();
+									stage_3 = false;
+								}
+
+								break;
+							}
+
+							// esli stavku povisil comp
+							if ( the_game.bet > data )  {
+								cout<< "bet is chenged:"<< the_game.bet <<endl;
+								cout<< "-> are you raise the bet? ( (y)es, (n)o )"<<endl;
+								cin>> x;
+
+								if ( x != 'y' ) {
+
+									i_play = false;
+
+								} else {
+
+									the_game.my_money -= the_game.bet - data;
+									the_game.bet_sum += the_game.bet - data;
+								}
+							}
+
+							flag1 = false;
+						}
+
+						if ( stage_3 ) {
+
+							cout<<"####### FIND WINNERS" << endl;
+							
+							if ( i_play ) {
+							  
+								the_game.printMyCards();
+								the_game.printAICards();
+								the_game.checkCombinationsWithMe();
+							} else {
+							  
+								the_game.printAICards();
+								the_game.checkCombinations();
+							}
+						}
+
+
+						//result
 					}
-
-
-					//result
 				}
 			}
 		}
+
 	}
 
 	return 0;
